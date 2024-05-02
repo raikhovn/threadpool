@@ -1,4 +1,4 @@
-package pkg
+package threadpool
 
 import (
 	"fmt"
@@ -13,40 +13,62 @@ var (
 /*
 USAGE:
 
+// Implement simple task
+type HandlerTask struct{}
 
+func NewHandlerTask() *HandlerTask {
+	return &HandlerTask{}
+}
 
-tp := threadpool.NewThreadPool(noOfWorkers := 2, queueSize := 10)
+func (t *HandlerTask) Execute(input interface{}) interface{} {
+	startTime := time.Now()
 
-var ret []*threadPool.Task
-var ntasks = 20
-
-for i := 0; i < ntasks; i++ {
-
-	var input []int
-	input = append(input, i + 1)
-	input = append(input, i + 200)
-
-	// Create new Task
-	t := Task {
-		Request: input,
-		Function: NewSampleTask(),
-	}
-
-	// Execute
-	err := tp.Execute(&t)
-
-	if (err != nil) {
-		println("Error occured in threadPool.Execute(): ", err.Error())
-	}
-	else {
-		ret = append(ret, t)
-	}
+	fmt.Printf("Started executing task...\n")
+	time.Sleep(4 * time.Second)
+	endTime := time.Now()
+	fmt.Printf("Execution completed. Time(ms): %d\n", endTime.Sub(startTime)/time.Millisecond)
+	return endTime.Sub(startTime) / time.Millisecond
 
 }
-// Wait for threads to timeout of finish
-tp.Wait()
 
-tp.Close()
+func main() {
+
+	tp := threadpool.NewThreadPool(2, 20)
+
+	var ret []*threadpool.Task
+	var ntasks = 200
+
+	for i := 0; i < ntasks; i++ {
+
+		var input []int
+		input = append(input, i+1)
+		input = append(input, i+200)
+
+		// Create new Task
+		t := threadpool.Task{
+			Request:  input,
+			Function: NewHandlerTask(),
+		}
+
+		// Execute
+		err := tp.Execute(&t)
+
+		if err != nil {
+			println("Error occured in threadPool.Execute(): ", err.Error())
+		} else {
+			ret = append(ret, &t)
+		}
+
+	}
+	// Wait for threads to timeout of finish
+	tp.Wait()
+
+	for i := 0; i < len(ret); i++ {
+		fmt.Printf("Task output: %d\n", ret[i].Response.(time.Duration))
+	}
+
+	tp.Close()
+}
 */
 
 //ThreadPool type for holding the workers and handle the job requests
